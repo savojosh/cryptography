@@ -48,7 +48,7 @@ raw = [
 code = {}
 
 def create_key():
-    codeLength = random.randint(4,10)
+    codeLength = random.randint(4,20)
     key = ""
 
     for x in range(codeLength):
@@ -92,33 +92,80 @@ def sort_code():
 
     return newCode
 
+def check_uniqueness(key):
+    allKeysAreUnique = True
+
+    for f_key, f_value in code.items():
+        for m_key, m_value in code.items():
+            for b_key, b_value in code.items():
+                string = f_value + m_value + b_value
+                #print([f_key, m_key, b_key])
+
+                if  (key == f_key and key == m_key and key == b_key): pass
+                elif(                 key == m_key and key == b_key): pass
+                elif(key == f_key                  and key == b_key): pass
+                elif(key == f_key and key == m_key                 ): pass
+
+                elif(f_key == m_key or f_key == b_key): pass
+                elif(m_key == b_key): pass
+
+                elif(key == f_key):
+                    firstIndex = string.find(f_value)
+                    secondIndex = string[firstIndex + 1:].find(f_value)
+
+                    if(firstIndex != 0 or secondIndex != -1):
+                        allKeysAreUnique = False
+                    
+                elif(key == m_key):
+                    m_location = len(f_value)
+                    firstIndex = string.find(m_value)
+                    secondIndex = string[firstIndex + 1:].find(m_value)
+
+                    if(m_location != firstIndex or secondIndex != -1):
+                        allKeysAreUnique = False
+                    
+                elif(key == b_key):
+                    m_location = len(f_value + m_value)
+                    firstIndex = string.find(b_value)
+                    secondIndex = string[firstIndex + 1:].find(b_value)
+
+                    if(m_location != firstIndex or secondIndex != -1):
+                        allKeysAreUnique = False
+
+                else:
+                    if(string.find(code.get(key)) != -1):
+                        allKeysAreUnique = False
+                                
+                if(not allKeysAreUnique): break
+            if(not allKeysAreUnique): break
+        if(not allKeysAreUnique): 
+            #print("Failed")
+            break
+
+    return allKeysAreUnique
+
 def create_code(name):
 
     global code
     allKeysAreUnique = False
-
-    iteration = 0
+    iterations = 0
     
     while(not allKeysAreUnique):
-        allKeys = ""
-        iteration += 1
+        allKeysAreUnique = True
+
+        iterations += 1
+        print("Creating Key " + str(iterations) + "...")
 
         for character in raw:
             code[character] = create_key()
-            allKeys = allKeys + code.get(character)
 
-        for key, value in code.items():
-            firstIndex = allKeys.find(value)
-            secondIndex = allKeys[firstIndex + 1:].find(value)
+        for key in code.keys():
+            if(allKeysAreUnique):
+                allKeysAreUnique = check_uniqueness(key)
 
-            if(secondIndex == -1):
-                allKeysAreUnique = True
-            else:
-                allKeysAreUnique = False
-    
-    code = sort_code()
+        code = sort_code()
 
-    with open(name + ".json", "w") as target:
-        json.dump(code, target)
+        with open(name + ".json", "w") as target:
+            json.dump(code, target)
 
 create_code("test")
