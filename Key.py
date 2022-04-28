@@ -95,9 +95,26 @@ def sort_code():
 def create_code(name):
 
     global code
+    allKeysAreUnique = False
 
-    for character in raw:
-        code[character] = create_key()
+    iteration = 0
+    
+    while(not allKeysAreUnique):
+        allKeys = ""
+        iteration += 1
+
+        for character in raw:
+            code[character] = create_key()
+            allKeys = allKeys + code.get(character)
+
+        for key, value in code.items():
+            firstIndex = allKeys.find(value)
+            secondIndex = allKeys[firstIndex + 1:].find(value)
+
+            if(secondIndex == -1):
+                allKeysAreUnique = True
+            else:
+                allKeysAreUnique = False
     
     code = sort_code()
 
