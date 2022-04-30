@@ -47,8 +47,52 @@ raw = [
 
 code = {}
 
-def create_key():
-    codeLength = random.randint(4,20)
+def translate_num_to_key(code, character, distance):
+    key = ""
+    value = ""
+    pos = 0
+
+    for i in range(len(raw)):
+        if(raw[i] == character):
+            pos = i
+            break
+    
+    if(pos + distance >= len(raw)):
+        key = raw[distance - len(raw)]
+    else:
+        key = raw[pos + distance]
+    
+    with open(code, "r") as source:
+        jsondict = json.load(source)
+        for target in jsondict.keys():
+            if(key == target):
+                value = jsondict.get(target)
+                break
+    
+    return value
+
+def create_number_key(word_1, word_2):
+    nums = []
+
+    for i in range(len(word_1)):
+        pos1 = 0
+        pos2 = 0
+        if(i < len(word_2)):
+            for j in range(len(raw)):
+                if(raw[j] == word_1[i]):
+                    pos1 = j
+                if(raw[j] == word_2[i]):
+                    pos2 = j
+            
+            if(pos1 < pos2):
+                nums.append(pos2 - pos1)
+            if(pos1 > pos2):
+                nums.append(len(raw) - pos1 + pos2)
+    
+    return nums
+
+def create_character_key(min, max):
+    codeLength = random.randint(min, max)
     key = ""
 
     for x in range(codeLength):
@@ -59,7 +103,7 @@ def create_key():
 
     for entry in code.keys():
         if(code.get(entry).find(key) != -1):
-            key = create_key()
+            key = create_character_key(min, max)
 
     return key
 
@@ -106,8 +150,23 @@ def check_uniqueness(key):
                 elif(key == f_key                  and key == b_key): pass
                 elif(key == f_key and key == m_key                 ): pass
 
-                elif(f_key == m_key or f_key == b_key): pass
-                elif(m_key == b_key): pass
+                elif(f_key == m_key):
+                    string = f_value + m_value
+                    if(string.find(code.get(key)) != -1):
+                        allKeysAreUnique = False
+
+                elif(f_key == b_key):
+                    string = f_value + b_value
+                    if(string.find(code.get(key)) != -1):
+                        allKeysAreUnique = False
+
+                elif(m_key == b_key):
+                    string = m_value + b_value
+                    if(string.find(code.get(key)) != -1):
+                        allKeysAreUnique = False
+
+                # abc, cda, bca, cab, cba, acb
+                # bcacba
 
                 elif(key == f_key):
                     firstIndex = string.find(f_value)
@@ -144,7 +203,7 @@ def check_uniqueness(key):
 
     return allKeysAreUnique
 
-def create_code(name):
+def create_code(name, min, max):
 
     global code
     allKeysAreUnique = False
@@ -157,7 +216,7 @@ def create_code(name):
         print("Creating Key " + str(iterations) + "...")
 
         for character in raw:
-            code[character] = create_key()
+            code[character] = create_character_key(min, max)
 
         for key in code.keys():
             if(allKeysAreUnique):
@@ -168,4 +227,4 @@ def create_code(name):
         with open(name + ".json", "w") as target:
             json.dump(code, target)
 
-create_code("test")
+# create_code("test")
