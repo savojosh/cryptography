@@ -1,7 +1,5 @@
-import os
 import json
 import random
-import time
 
 raw = [
     "A","a",
@@ -37,9 +35,9 @@ raw = [
     "~","`",
     "{","[",
     "}","]",
-    "|",#"\\",
+    "|",#"\",
     ":",";",
-    #"'",""",
+    #"'",'"',
     "<",",",
     ">",".",
     "?","/"
@@ -47,7 +45,7 @@ raw = [
 
 code = {}
 
-def translate_num_to_key(code, character, distance):
+def translate_char_to_key(code, character, distance):
     key = ""
     value = ""
     pos = 0
@@ -56,22 +54,42 @@ def translate_num_to_key(code, character, distance):
         if(raw[i] == character):
             pos = i
             break
-    
-    if(pos + distance >= len(raw)):
-        key = raw[distance - len(raw)]
-    else:
-        key = raw[pos + distance]
+        elif(i == len(raw) - 1):
+            return character
     
     with open(code, "r") as source:
         jsondict = json.load(source)
-        for target in jsondict.keys():
-            if(key == target):
-                value = jsondict.get(target)
-                break
+
+        if(pos + distance >= len(raw)):
+            key = raw[distance - (len(raw) - pos)]
+            print(">\t" + str(pos) + "\t" + character + "\t" + raw[pos] + "\t" + str(distance) + "\t" + str(distance - (len(raw) - pos)) + "\t" + key + "\t" + jsondict.get(key))
+        else:
+            key = raw[pos + distance]
+            print("<\t" + str(pos) + "\t" + character + "\t" + raw[pos] + "\t" + str(distance) + "\t" + str(pos + distance) + "\t" + key + "\t" + jsondict.get(key))
+        
+        value = jsondict.get(key)
+        source.close()
     
     return value
 
-def create_number_key(word_1, word_2):
+def translate_key_to_char(key_char, distance):
+    translated_char = ""
+    key_pos = 0
+    
+    for i in range(len(raw)):
+        if(key_char == raw[i]):
+            key_pos = i
+            break
+    
+    if(key_pos - distance < 0):
+        translated_char = raw[len(raw) - (distance - key_pos)]
+    else:
+        translated_char = raw[key_pos - distance]
+    
+    return translated_char
+    
+def create_number_key(name, word_1, word_2):
+    num_dictionary = {}
     nums = []
 
     for i in range(len(word_1)):
@@ -89,7 +107,11 @@ def create_number_key(word_1, word_2):
             if(pos1 > pos2):
                 nums.append(len(raw) - pos1 + pos2)
     
-    return nums
+    num_dictionary["nums"] = nums
+
+    with open(name + ".json", "w") as target:
+        json.dump(num_dictionary, target)
+        target.close()
 
 def create_character_key(min, max):
     codeLength = random.randint(min, max)
@@ -97,9 +119,6 @@ def create_character_key(min, max):
 
     for x in range(codeLength):
         key = key + raw[random.randint(0, len(raw) - 1)]
-    
-    # clock = str(time.time())
-    # key = key + clock[(len(clock) - 2):]
 
     for entry in code.keys():
         if(code.get(entry).find(key) != -1):
@@ -143,7 +162,6 @@ def check_uniqueness(key):
         for m_key, m_value in code.items():
             for b_key, b_value in code.items():
                 string = f_value + m_value + b_value
-                #print([f_key, m_key, b_key])
 
                 if  (key == f_key and key == m_key and key == b_key): pass
                 elif(                 key == m_key and key == b_key): pass
@@ -164,9 +182,6 @@ def check_uniqueness(key):
                     string = m_value + b_value
                     if(string.find(code.get(key)) != -1):
                         allKeysAreUnique = False
-
-                # abc, cda, bca, cab, cba, acb
-                # bcacba
 
                 elif(key == f_key):
                     firstIndex = string.find(f_value)
@@ -197,9 +212,7 @@ def check_uniqueness(key):
                                 
                 if(not allKeysAreUnique): break
             if(not allKeysAreUnique): break
-        if(not allKeysAreUnique): 
-            #print("Failed")
-            break
+        if(not allKeysAreUnique): break
 
     return allKeysAreUnique
 
@@ -226,5 +239,7 @@ def create_code(name, min, max):
 
         with open(name + ".json", "w") as target:
             json.dump(code, target)
+            target.close()
 
-# create_code("test")
+#create_code("test_keys", 3, 3)
+#create_number_key("test_nums", create_character_key(20, 20), create_character_key(20, 20))
